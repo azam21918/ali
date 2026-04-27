@@ -1,77 +1,108 @@
-<script>
-    const schedule = {
-        Saturday: [{label: "08:00 AM", task: "Coaching", icon: "🏫"}, {label: "11:00 AM", task: "University", icon: "🎓"}, {label: "02:00 PM", task: "Rest", icon: "🔋"}, {label: "04:30 PM", task: "Ashik", icon: "👤"}, {label: "06:30 PM", task: "Alvi", icon: "👤"}, {label: "09:00 PM", task: "Reading", icon: "📖"}],
-        Sunday: [{label: "11:00 AM", task: "Abid", icon: "👤"}, {label: "02:00 PM", task: "Rest", icon: "🔋"}, {label: "04:30 PM", task: "Mahi", icon: "👤"}, {label: "06:30 PM", task: "Reading", icon: "📖"}, {label: "09:00 PM", task: "Reading", icon: "📖"}],
-        Monday: [{label: "11:00 AM", task: "University", icon: "🎓"}, {label: "02:00 PM", task: "Rest", icon: "🔋"}, {label: "04:00 PM", task: "Ashik", icon: "👤"}, {label: "06:10 PM", task: "Coaching", icon: "🏫"}, {label: "08:00 PM", task: "Reading", icon: "📖"}],
-        Tuesday: [{label: "08:00 AM", task: "Coaching", icon: "🏫"}, {label: "11:00 AM", task: "Abid", icon: "👤"}, {label: "02:00 PM", task: "Rest", icon: "🔋"}, {label: "04:30 PM", task: "Mahi", icon: "👤"}, {label: "07:00 PM", task: "Reading", icon: "📖"}, {label: "09:00 PM", task: "Reading", icon: "📖"}],
-        Wednesday: [{label: "11:00 AM", task: "University", icon: "🎓"}, {label: "02:00 PM", task: "Rest", icon: "🔋"}, {label: "04:30 PM", task: "Ashik", icon: "👤"}, {label: "06:30 PM", task: "Alvi", icon: "👤"}, {label: "09:00 PM", task: "Reading", icon: "📖"}],
-        Thursday: [{label: "11:00 AM", task: "Abid", icon: "👤"}, {label: "02:00 PM", task: "Rest", icon: "🔋"}, {label: "04:30 PM", task: "Mahi", icon: "👤"}, {label: "06:30 PM", task: "Alvi", icon: "👤"}, {label: "09:00 PM", task: "Reading", icon: "📖"}],
-        Friday: [{label: "08:00 AM", task: "Coaching", icon: "🏫"}, {label: "11:00 AM", task: "Free Time", icon: "🌊"}]
-    };
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Routine OS</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&display=swap" rel="stylesheet">
+    <style>
+        :root { --bg: #05070a; --accent: #6366f1; --glass: rgba(255, 255, 255, 0.03); --card-border: rgba(255, 255, 255, 0.08); --text-main: #ffffff; --text-dim: #808191; --success: #00f2fe; }
+        body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: var(--bg); color: var(--text-main); margin: 0; overflow: hidden; height: 100vh; }
+        .app-container { display: flex; flex-direction: column; height: 100vh; background: radial-gradient(circle at 0% 0%, #131525 0%, #05070a 60%); }
+        header { padding: 40px 25px 20px; }
+        .header-row { display: flex; justify-content: space-between; align-items: center; }
+        .user-greet h1 { margin: 0; font-size: 26px; font-weight: 800; }
+        .time-badge { background: rgba(99, 102, 241, 0.1); border: 1px solid var(--accent); padding: 8px 16px; border-radius: 12px; font-size: 14px; color: var(--accent); }
+        .day-scroller { display: flex; gap: 12px; overflow-x: auto; padding: 0 25px 25px; scrollbar-width: none; }
+        .day-card { min-width: 60px; height: 80px; background: var(--glass); border: 1px solid var(--card-border); border-radius: 20px; display: flex; flex-direction: column; align-items: center; justify-content: center; cursor: pointer; }
+        .day-card.active { background: var(--accent); border-color: var(--accent); }
+        .viewport { flex: 1; background: rgba(255,255,255,0.01); border-radius: 40px 40px 0 0; padding: 30px 25px; overflow-y: auto; border-top: 1px solid var(--card-border); }
+        
+        /* Expense Styles */
+        .expense-card { background: var(--glass); padding: 20px; border-radius: 20px; border: 1px solid var(--card-border); margin-bottom: 20px; }
+        input, select { width: 100%; padding: 12px; margin: 10px 0; border-radius: 10px; border: 1px solid var(--card-border); background: #1a1c2e; color: white; box-sizing: border-box; }
+        button.add-btn { width: 100%; padding: 12px; background: var(--accent); border: none; border-radius: 10px; color: white; font-weight: 800; cursor: pointer; }
+        .total-box { font-size: 20px; font-weight: 800; text-align: center; margin-bottom: 20px; color: var(--success); }
+    </style>
+</head>
+<body>
 
-    let expenses = JSON.parse(localStorage.getItem('myExpenses')) || [];
-    const getTodayDate = () => new Date().toLocaleDateString();
+<div class="app-container">
+    <header>
+        <div class="header-row">
+            <div class="user-greet">
+                <p id="greet-text">LOADING...</p>
+                <h1>Ali Azam</h1>
+            </div>
+            <div class="time-badge" id="live-clock">--:-- --</div>
+        </div>
+    </header>
+
+    <div class="day-scroller" id="dayPicker">
+        <div class="day-card" onclick="updateView('Saturday', this)"><span>SAT</span><span>25</span></div>
+        <div class="day-card" onclick="updateView('Sunday', this)"><span>SUN</span><span>26</span></div>
+        <div class="day-card" onclick="updateView('Monday', this)"><span>MON</span><span>27</span></div>
+        <div class="day-card" onclick="updateView('Expenses', this)"><span>EXP</span><span>+</span></div>
+    </div>
+
+    <div class="viewport" id="taskViewport"></div>
+</div>
+
+<script>
+    let expenses = JSON.parse(localStorage.getItem('myExpenses')) || {};
 
     function updateView(day, el) {
         document.querySelectorAll('.day-card').forEach(c => c.classList.remove('active'));
         if(el) el.classList.add('active');
+        
         const view = document.getElementById('taskViewport');
         view.innerHTML = "";
 
         if (day === 'Expenses') {
-            const todayExpenses = expenses.filter(e => e.date === getTodayDate());
-            const dailyTotal = todayExpenses.reduce((sum, item) => sum + parseFloat(item.amount || 0), 0);
-            
-            view.innerHTML = `
-                <div class="total-box">Today's Total: ${dailyTotal.toFixed(2)} BDT</div>
-                <div class="expense-card">
-                    <select id="cat"><option>Bus Travel</option><option>Food Expense</option><option>Other</option></select>
-                    <input type="number" id="amt" placeholder="Enter Amount (BDT)">
-                    <button class="add-btn" onclick="addExpense()">ADD COST</button>
-                    <button class="add-btn" style="background:#ef4444; margin-top:10px;" onclick="clearToday()">CLEAR TODAY</button>
-                </div>
-                <div id="list"></div>`;
-            renderList(todayExpenses);
+            renderExpenseView();
         } else {
-            (schedule[day] || []).forEach(item => {
-                view.innerHTML += `<div class="task-item"><div class="time-label">${item.label}</div><div class="task-content"><div><strong>${item.task}</strong></div><div>${item.icon}</div></div></div>`;
-            });
+            view.innerHTML = `<h3>Schedule for ${day}</h3>`; // Your existing schedule logic here
         }
+    }
+
+    function renderExpenseView() {
+        const view = document.getElementById('taskViewport');
+        const total = Object.values(expenses).reduce((a, b) => a + (parseFloat(b.amount) || 0), 0);
+        
+        view.innerHTML = `
+            <div class="total-box">Month Total: $${total.toFixed(2)}</div>
+            <div class="expense-card">
+                <select id="cat">
+                    <option value="Bus">Bus Travel</option>
+                    <option value="Food">Food Expense</option>
+                    <option value="Other">Other</option>
+                </select>
+                <input type="number" id="amt" placeholder="Amount">
+                <button class="add-btn" onclick="addExpense()">ADD COST</button>
+            </div>
+            <div id="list"></div>
+        `;
+        renderList();
     }
 
     function addExpense() {
         const cat = document.getElementById('cat').value;
         const amt = document.getElementById('amt').value;
-        if(amt && !isNaN(amt)) {
-            expenses.push({ cat, amount: amt, date: getTodayDate() });
-            localStorage.setItem('myExpenses', JSON.stringify(expenses));
-            updateView('Expenses');
-        }
+        const id = Date.now();
+        expenses[id] = { cat, amount: amt };
+        localStorage.setItem('myExpenses', JSON.stringify(expenses));
+        renderExpenseView();
     }
 
-    function clearToday() {
-        if(confirm("Clear all expenses for today?")) {
-            expenses = expenses.filter(e => e.date !== getTodayDate());
-            localStorage.setItem('myExpenses', JSON.stringify(expenses));
-            updateView('Expenses');
-        }
-    }
-
-    function renderList(listItems) {
+    function renderList() {
         const list = document.getElementById('list');
-        list.innerHTML = "";
-        listItems.slice().reverse().forEach(item => {
-            list.innerHTML += `<div class="task-content" style="margin-bottom:10px; font-size:12px;">
-                <strong>${item.cat}</strong> <span>${item.amount} BDT</span>
-            </div>`;
-        });
+        for(let id in expenses) {
+            list.innerHTML += `<div style="padding:10px; border-bottom:1px solid #333;">${expenses[id].cat}: $${expenses[id].amount}</div>`;
+        }
     }
 
-    function tick() {
-        document.getElementById('live-clock').innerText = new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true });
-    }
-    
-    setInterval(tick, 1000);
-    tick();
+    // Initialize
     updateView('Saturday');
 </script>
+</body>
+</html>
