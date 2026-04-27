@@ -14,16 +14,20 @@
         .user-greet h1 { margin: 0; font-size: 26px; font-weight: 800; }
         .time-badge { background: rgba(99, 102, 241, 0.1); border: 1px solid var(--accent); padding: 8px 16px; border-radius: 12px; font-size: 14px; color: var(--accent); }
         .day-scroller { display: flex; gap: 12px; overflow-x: auto; padding: 0 25px 25px; scrollbar-width: none; }
-        .day-card { min-width: 60px; height: 80px; background: var(--glass); border: 1px solid var(--card-border); border-radius: 20px; display: flex; flex-direction: column; align-items: center; justify-content: center; cursor: pointer; }
-        .day-card.active { background: var(--accent); border-color: var(--accent); }
+        .day-card { min-width: 60px; height: 80px; background: var(--glass); border: 1px solid var(--card-border); border-radius: 20px; display: flex; flex-direction: column; align-items: center; justify-content: center; cursor: pointer; transition: 0.3s; }
+        .day-card.active { background: var(--accent); border-color: var(--accent); transform: scale(1.05); }
         .viewport { flex: 1; background: rgba(255,255,255,0.01); border-radius: 40px 40px 0 0; padding: 30px 25px; overflow-y: auto; border-top: 1px solid var(--card-border); }
         
+        /* Expense Styles */
         .expense-card { background: var(--glass); padding: 20px; border-radius: 20px; border: 1px solid var(--card-border); margin-bottom: 20px; }
-        input, select { width: 100%; padding: 12px; margin: 10px 0; border-radius: 10px; border: 1px solid var(--card-border); background: #1a1c2e; color: white; box-sizing: border-box; }
-        button.add-btn { width: 100%; padding: 12px; background: var(--accent); border: none; border-radius: 10px; color: white; font-weight: 800; cursor: pointer; }
-        .total-box { font-size: 20px; font-weight: 800; text-align: center; margin-bottom: 20px; color: var(--success); }
-        .task-item { display: flex; gap: 15px; margin-bottom: 25px; align-items: center; }
-        .task-content { flex: 1; background: var(--glass); border: 1px solid var(--card-border); padding: 16px; border-radius: 22px; }
+        select, input { width: 100%; padding: 12px; margin: 5px 0; border-radius: 10px; border: 1px solid var(--card-border); background: #1a1c2e; color: white; }
+        button.add-btn { width: 100%; padding: 12px; background: var(--accent); border: none; border-radius: 10px; color: white; font-weight: 800; cursor: pointer; margin-top: 10px; }
+        .total-box { font-size: 22px; font-weight: 800; text-align: center; margin-bottom: 20px; color: var(--success); }
+        
+        /* Task Styles */
+        .task-item { display: flex; gap: 15px; margin-bottom: 25px; position: relative; }
+        .time-label { font-size: 10px; color: var(--text-dim); min-width: 55px; padding-top: 15px; }
+        .task-content { flex: 1; background: var(--glass); border: 1px solid var(--card-border); padding: 16px; border-radius: 22px; display: flex; align-items: center; justify-content: space-between; }
     </style>
 </head>
 <body>
@@ -43,48 +47,49 @@
         <div class="day-card" onclick="updateView('Saturday', this)"><span>SAT</span><span>25</span></div>
         <div class="day-card" onclick="updateView('Sunday', this)"><span>SUN</span><span>26</span></div>
         <div class="day-card" onclick="updateView('Monday', this)"><span>MON</span><span>27</span></div>
-        <div class="day-card" onclick="updateView('Expenses', this)"><span>EXP</span><span>+</span></div>
+        <div class="day-card" onclick="updateView('Tuesday', this)"><span>TUE</span><span>28</span></div>
+        <div class="day-card" onclick="updateView('Wednesday', this)"><span>WED</span><span>29</span></div>
+        <div class="day-card" onclick="updateView('Thursday', this)"><span>THU</span><span>30</span></div>
+        <div class="day-card" onclick="updateView('Friday', this)"><span>FRI</span><span>01</span></div>
+        <div class="day-card" onclick="updateView('Expenses', this)" style="border: 1px dashed var(--accent);"><span>EXP</span><span>+</span></div>
     </div>
 
     <div class="viewport" id="taskViewport"></div>
 </div>
 
 <script>
+    const schedule = {
+        Saturday: [{label: "08:00 AM", task: "Coaching", icon: "🏫"}, {label: "11:00 AM", task: "University", icon: "🎓"}, {label: "02:00 PM", task: "Rest", icon: "🔋"}, {label: "04:30 PM", task: "Ashik", icon: "👤"}, {label: "06:30 PM", task: "Alvi", icon: "👤"}, {label: "09:00 PM", task: "Reading", icon: "📖"}],
+        Sunday: [{label: "11:00 AM", task: "Abid", icon: "👤"}, {label: "02:00 PM", task: "Rest", icon: "🔋"}, {label: "04:30 PM", task: "Mahi", icon: "👤"}, {label: "06:30 PM", task: "Reading", icon: "📖"}, {label: "09:00 PM", task: "Reading", icon: "📖"}],
+        Monday: [{label: "11:00 AM", task: "University", icon: "🎓"}, {label: "02:00 PM", task: "Rest", icon: "🔋"}, {label: "04:00 PM", task: "Ashik", icon: "👤"}, {label: "06:10 PM", task: "Coaching", icon: "🏫"}, {label: "08:00 PM", task: "Reading", icon: "📖"}],
+        Tuesday: [{label: "08:00 AM", task: "Coaching", icon: "🏫"}, {label: "11:00 AM", task: "Abid", icon: "👤"}, {label: "02:00 PM", task: "Rest", icon: "🔋"}, {label: "04:30 PM", task: "Mahi", icon: "👤"}, {label: "07:00 PM", task: "Reading", icon: "📖"}, {label: "09:00 PM", task: "Reading", icon: "📖"}],
+        Wednesday: [{label: "11:00 AM", task: "University", icon: "🎓"}, {label: "02:00 PM", task: "Rest", icon: "🔋"}, {label: "04:30 PM", task: "Ashik", icon: "👤"}, {label: "06:30 PM", task: "Alvi", icon: "👤"}, {label: "09:00 PM", task: "Reading", icon: "📖"}],
+        Thursday: [{label: "11:00 AM", task: "Abid", icon: "👤"}, {label: "02:00 PM", task: "Rest", icon: "🔋"}, {label: "04:30 PM", task: "Mahi", icon: "👤"}, {label: "06:30 PM", task: "Alvi", icon: "👤"}, {label: "09:00 PM", task: "Reading", icon: "📖"}],
+        Friday: [{label: "08:00 AM", task: "Coaching", icon: "🏫"}, {label: "11:00 AM", task: "Free Time", icon: "🌊"}]
+    };
+
     let expenses = JSON.parse(localStorage.getItem('myExpenses')) || [];
 
     function updateView(day, el) {
         document.querySelectorAll('.day-card').forEach(c => c.classList.remove('active'));
         if(el) el.classList.add('active');
-        
         const view = document.getElementById('taskViewport');
         view.innerHTML = "";
 
         if (day === 'Expenses') {
-            renderExpenseView();
+            const total = expenses.reduce((sum, item) => sum + parseFloat(item.amount), 0);
+            view.innerHTML = `<div class="total-box">Month Total: ${total.toFixed(2)} BDT</div>
+                <div class="expense-card">
+                    <select id="cat"><option>Bus Travel</option><option>Food Expense</option><option>Other</option></select>
+                    <input type="number" id="amt" placeholder="Amount (BDT)">
+                    <button class="add-btn" onclick="addExpense()">ADD COST</button>
+                </div><div id="list"></div>`;
+            renderList();
         } else {
-            view.innerHTML = `<h3>Schedule for ${day}</h3><p>Your tasks go here...</p>`;
+            schedule[day].forEach(item => {
+                view.innerHTML += `<div class="task-item"><div class="time-label">${item.label}</div><div class="task-content"><div><strong>${item.task}</strong></div><div>${item.icon}</div></div></div>`;
+            });
         }
-    }
-
-    function renderExpenseView() {
-        const view = document.getElementById('taskViewport');
-        const total = expenses.reduce((sum, item) => sum + parseFloat(item.amount), 0);
-        
-        view.innerHTML = `
-            <div class="total-box">Month Total: ${total.toFixed(2)} BDT</div>
-            <div class="expense-card">
-                <select id="cat">
-                    <option value="Bus Travel">Bus Travel</option>
-                    <option value="Food">Food Expense</option>
-                    <option value="Stationery">Stationery</option>
-                    <option value="Other">Other</option>
-                </select>
-                <input type="number" id="amt" placeholder="Enter Amount (BDT)">
-                <button class="add-btn" onclick="addExpense()">ADD COST</button>
-            </div>
-            <div id="list"></div>
-        `;
-        renderList();
     }
 
     function addExpense() {
@@ -93,25 +98,17 @@
         if(amt) {
             expenses.push({ cat, amount: amt });
             localStorage.setItem('myExpenses', JSON.stringify(expenses));
-            renderExpenseView();
+            updateView('Expenses');
         }
     }
 
     function renderList() {
         const list = document.getElementById('list');
-        expenses.forEach((item, index) => {
-            list.innerHTML += `
-                <div class="task-item">
-                    <div class="task-content">
-                        <strong>${item.cat}</strong>: ${item.amount} BDT
-                    </div>
-                </div>`;
-        });
+        expenses.forEach(item => list.innerHTML += `<div class="task-content" style="margin-bottom:10px;">${item.cat} <span>${item.amount} BDT</span></div>`);
     }
 
     function tick() {
-        const now = new Date();
-        document.getElementById('live-clock').innerText = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true });
+        document.getElementById('live-clock').innerText = new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true });
     }
     setInterval(tick, 1000);
     tick();
