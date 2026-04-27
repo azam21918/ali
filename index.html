@@ -10,9 +10,7 @@
     };
 
     let expenses = JSON.parse(localStorage.getItem('myExpenses')) || [];
-
-    // Helper to calculate totals
-    const getTotal = () => expenses.reduce((sum, item) => sum + parseFloat(item.amount || 0), 0);
+    const getTodayDate = () => new Date().toLocaleDateString();
 
     function updateView(day, el) {
         document.querySelectorAll('.day-card').forEach(c => c.classList.remove('active'));
@@ -21,16 +19,19 @@
         view.innerHTML = "";
 
         if (day === 'Expenses') {
+            const todayExpenses = expenses.filter(e => e.date === getTodayDate());
+            const dailyTotal = todayExpenses.reduce((sum, item) => sum + parseFloat(item.amount || 0), 0);
+            
             view.innerHTML = `
-                <div class="total-box">Month Total: ${getTotal().toFixed(2)} BDT</div>
+                <div class="total-box">Today's Total: ${dailyTotal.toFixed(2)} BDT</div>
                 <div class="expense-card">
                     <select id="cat"><option>Bus Travel</option><option>Food Expense</option><option>Other</option></select>
                     <input type="number" id="amt" placeholder="Enter Amount (BDT)">
                     <button class="add-btn" onclick="addExpense()">ADD COST</button>
-                    <button class="add-btn" style="background:#ef4444; margin-top:10px;" onclick="clearExpenses()">CLEAR ALL DATA</button>
+                    <button class="add-btn" style="background:#ef4444; margin-top:10px;" onclick="clearToday()">CLEAR TODAY</button>
                 </div>
                 <div id="list"></div>`;
-            renderList();
+            renderList(todayExpenses);
         } else {
             (schedule[day] || []).forEach(item => {
                 view.innerHTML += `<div class="task-item"><div class="time-label">${item.label}</div><div class="task-content"><div><strong>${item.task}</strong></div><div>${item.icon}</div></div></div>`;
@@ -42,28 +43,26 @@
         const cat = document.getElementById('cat').value;
         const amt = document.getElementById('amt').value;
         if(amt && !isNaN(amt)) {
-            expenses.push({ cat, amount: amt, date: new Date().toLocaleDateString() });
+            expenses.push({ cat, amount: amt, date: getTodayDate() });
             localStorage.setItem('myExpenses', JSON.stringify(expenses));
             updateView('Expenses');
-        } else {
-            alert("Please enter a valid amount");
         }
     }
 
-    function clearExpenses() {
-        if(confirm("Are you sure you want to delete all expenses?")) {
-            expenses = [];
-            localStorage.removeItem('myExpenses');
+    function clearToday() {
+        if(confirm("Clear all expenses for today?")) {
+            expenses = expenses.filter(e => e.date !== getTodayDate());
+            localStorage.setItem('myExpenses', JSON.stringify(expenses));
             updateView('Expenses');
         }
     }
 
-    function renderList() {
+    function renderList(listItems) {
         const list = document.getElementById('list');
         list.innerHTML = "";
-        expenses.slice().reverse().forEach(item => {
+        listItems.slice().reverse().forEach(item => {
             list.innerHTML += `<div class="task-content" style="margin-bottom:10px; font-size:12px;">
-                ${item.date} | <strong>${item.cat}</strong> <span>${item.amount} BDT</span>
+                <strong>${item.cat}</strong> <span>${item.amount} BDT</span>
             </div>`;
         });
     }
@@ -71,22 +70,8 @@
     function tick() {
         document.getElementById('live-clock').innerText = new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true });
     }
-
-    // Auto-update dates on cards
-    function initDates() {
-        const cards = document.querySelectorAll('.day-card');
-        const baseDate = new Date();
-        cards.forEach((card, i) => {
-            if (i < 7) {
-                let d = new Date();
-                d.setDate(d.getDate() + (i - d.getDay() + 1));
-                card.querySelector('span:last-child').innerText = d.getDate().toString().padStart(2, '0');
-            }
-        });
-    }
-
+    
     setInterval(tick, 1000);
-    initDates();
     tick();
     updateView('Saturday');
 </script>
